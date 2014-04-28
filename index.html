@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<header style="background-color:black;display:block;">
+</header>
+<body style="background-color:black;display:block;">
+<canvas id="board" height="640" width="640">
+</canvas>
+
+<script>
+    var canvas = document.getElementById('board');
+    var context = canvas.getContext('2d');
+	canvas.style.border="white 1px solid";
+	var HEIGHT = 640;
+	var WIDTH = 640;
+	var radius1=0; var radius2=150; var radius3=300;
+	var opening1=Math.random()*1.9; var opening2=Math.random()*1.9; var opening3=Math.random()*1.9;
+	var expand=1;
+	var date = new Date();
+	var date1 = date.getTime();
+	var time=0;
+	var score=0;
+	var ballx=0; var bally=0; var ballr=500;
+	var theta = 0;
+	var test1=false, test2=true, test3=true;
+	var mousey=1,mousex=1;
+	function getMousePos(board,evt){
+	  var rect=board.getBoundingClientRect();
+	  mousey=evt.clientY - rect.top;
+	  mousex=evt.clientX -rect.left;
+	  theta=Math.atan((mousey-HEIGHT/2)/(mousex-WIDTH/2));
+	  theta/=Math.PI;
+	  if(mousex<WIDTH/2){
+	    theta+=1;
+	  }
+	  if(theta<0){
+	    theta=2+theta;
+	  }
+	}
+	function ball(){
+	  context.arc(ballx,bally,ballr,0,Math.PI*2);
+	}
+	function updateBall(){
+	  ballx=ballr*Math.cos(theta*Math.PI);
+	  bally=ballr*Math.sin(theta*Math.PI);
+	  bally+=HEIGHT/2;
+	  ballx+=WIDTH/2;
+	  
+
+	  if(ballr-2<radius1 && theta>opening1 && theta < opening1+.1 && test1==false){
+	    test1=true;
+	  }else if(ballr-2<radius1 && (theta<opening1 || theta>opening1+.1) && test1==false){
+	    ballr=radius1+2;
+	  }
+	  if(ballr-2<radius2 && theta>opening2 && theta < opening2+.1 && test2==false){
+	    test2=true;
+	  }else if((ballr-2<radius2 && (theta<opening2 || theta>opening2+.1) && test2==false)){
+	    ballr=radius2+2;
+	  }
+	  if(ballr-2<radius3 && theta>opening3 && theta < opening3+.1 && test3==false){
+	    test3=true;
+	  }else if((ballr-2<radius3 && (theta<opening3 || theta>opening3+.1) && test3==false)){
+	    ballr=radius3+2;
+	  }
+	}
+	function clear(){
+	  context.clearRect(0,0,WIDTH,HEIGHT);
+	}
+	function updateRings(){
+	  if(radius1<450){
+	    radius1+=expand;
+	  }else{
+	    radius1=0;
+		opening1=Math.random()*1.9;
+		expand+=.05;
+		test1=false;
+	  }
+	  if(radius2<450){
+	    radius2+=expand;
+	  }else{
+	    radius2=0;
+		opening2=Math.random()*1.9;
+		expand+=.05;
+		test2=false
+	  }
+	  if(radius3<450){
+	    radius3+=expand;
+	  }else{
+	    radius3=0;
+		opening3=Math.random()*1.9;
+		expand+=.05;
+		test3=false;
+	  }
+	}
+	function uptime(){
+	  date = new Date();
+	  date2 = date.getTime();
+	  time = date2-date1;
+	  time=time/1000;
+	}
+	function upscore(){
+	  score+=100/ballr;
+	}
+	
+	function draw(){
+	  clear();
+	  context.lineWidth=3;
+	  
+	  
+	  context.beginPath();
+	  context.arc(WIDTH/2,HEIGHT/2,radius1,opening1*Math.PI,(opening1+.1)*Math.PI,true);
+	  context.strokeStyle="red";
+	  context.stroke();
+	  context.beginPath();
+	  context.arc(WIDTH/2,HEIGHT/2,radius2,opening2*Math.PI,(opening2+.1)*Math.PI,true);
+	  context.strokeStyle="blue";
+	  context.stroke();
+	  context.beginPath();
+	  context.arc(WIDTH/2,HEIGHT/2,radius3,opening3*Math.PI,(opening3+.1)*Math.PI,true);
+	  context.strokeStyle="green";
+	  context.stroke();
+	  context.beginPath();
+	  context.arc(ballx,bally,2,0,Math.PI*2);
+	  context.fillStyle='white';
+	  context.fill();
+	  context.fillStyle='white';
+	  context.fillText(time,10,10);
+	  context.fillText(Math.round(score),10,20);
+	}
+	function play(){
+	  updateRings();
+	  updateBall();
+	  uptime();
+	  upscore();
+	  draw();
+	  if(ballr>320){
+	    clearInterval(run);
+		context.fillText('Time: '+time,WIDTH/2,HEIGHT/2);
+		context.fillText('Score: '+score,WIDTH/2,HEIGHT/2+10);
+		start();
+	  }
+	}
+	function reset(){
+	  date = new Date();
+	  time=0;
+	  score=0;
+	  ballr=2;
+	  expand=1;
+	  date1=date.getTime();
+	  ballx=0;bally=0;
+	  radius1=0;radius2=150;radius3=300;
+	  test1=false;test2=true;test3=true;
+	}
+	function mouseClicked(e){
+	  if(ballr>320){
+	    reset();
+	    run=setInterval(play,20);
+	  }
+	}
+	function start(){
+	  context.fillStyle='white';
+	  context.fillText('CLICK TO PLAY',WIDTH/2-20,HEIGHT/2-50);
+	}
+	canvas.addEventListener('click',mouseClicked,false);
+	canvas.addEventListener('mousemove',function(evt){getMousePos(canvas,evt);},false);
+	window.onload=start();
+</script>
+<div style="color: white;">Ring Game! ALPHA (Better name TBD)<br>
+Bring the white ball through all the gaps in the rings!<br>
+The closer to the center the ball is the more score you accumulate<br>
+You can not move the ball in or out, the rings will push the ball out when you are bad at this game.<br>
+Controls:<br>
+Move the mouse and the ball follows in the path of a circle<br><br>
+Future Versions: <br>
+Multiplayer mode!<br>
+Fall in mode!<br>
+Add sound!<br>
+Leader boards!<br>
+Scale game to screen size! (Meaning will be playable on all devices, including smart phones!!!)
+
+</div>
+
+</body>
+</html>
